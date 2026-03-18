@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using Raylib_cs;
 
 namespace raycasting
 {
@@ -16,6 +17,10 @@ namespace raycasting
         {
             A = new Vector2(x1, y1);
             B = new Vector2(x2, y2);
+        }
+        public void Draw()
+        {
+            Raylib.DrawLineV(A, B, Color.White);
         }
     }
 }
