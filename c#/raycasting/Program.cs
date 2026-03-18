@@ -19,56 +19,60 @@ while (!Raylib.WindowShouldClose())
     Raylib.ClearBackground(Color.Black);
 
     Vector2 mouse = Raylib.GetMousePosition();
-    List<Vector2> hits = new List<Vector2>();
-
-    float epsilon = 0.0001f;
 
     foreach (var wall in walls)
     {
-        List<Vector2> vertices = new List<Vector2>() { wall.A, wall.B };
-        foreach (var vertex in vertices)
+        Vector2[] finalPoints = new Vector2[2];
+        Vector2[] vertices = new Vector2[] { wall.A, wall.B };
+
+        for (int i = 0; i < 2; i++)
         {
-            float baseAngle = MathF.Atan2(vertex.Y - mouse.Y, vertex.X - mouse.X);
-            for (int i = -1; i <= 1; i++)
+            Vector2 vertex = vertices[i];
+            Vector2 dir = Vector2.Normalize(vertex - mouse);
+
+            float distToVertex = Vector2.Distance(mouse, vertex);
+
+            Vector2? bestHit = null;
+            float minDist = float.MaxValue;
+
+            foreach (var w in walls)
             {
-                float angle = baseAngle + i * epsilon;
+                var hit = raycast.RaySegmentIntersection(mouse, dir, w.A, w.B);
 
-                Vector2 dir = new Vector2(MathF.Cos(angle), MathF.Sin(angle));
-                Vector2? closestHit = null;
-                float minDist = float.MaxValue;
-
-                foreach (var w in walls)
+                if (hit != null)
                 {
-                    var hit = raycast.RaySegmentIntersection(mouse, dir, w.A, w.B);
-                    if (hit != null)
+                    float dist = Vector2.Distance(mouse, hit.Value);
+
+                    if (dist < minDist)
                     {
-                        float dist = Vector2.Distance(mouse, hit.Value);
-                        if (dist < minDist)
-                        {
-                            minDist = dist;
-                            closestHit = hit;
-                        }
+                        minDist = dist;
+                        bestHit = hit;
                     }
                 }
-
-                if (closestHit != null)
-                {
-                    hits.Add(closestHit.Value);
-                    Raylib.DrawLineV(mouse, closestHit.Value, Color.Red);
-                }
             }
+
+            if (bestHit != null && minDist < distToVertex - 0.1f)
+                finalPoints[i] = bestHit.Value;
+            else
+                finalPoints[i] = vertex;
+
+            Raylib.DrawLineV(mouse, finalPoints[i], Color.Red);
+            Raylib.DrawCircleV(finalPoints[i], 4, Color.Green);
+        }
+
+        if (true)
+        {
+            Raylib.DrawTriangle(mouse, finalPoints[0], finalPoints[1], new Color(255, 255, 100, 80));
         }
     }
+
     foreach (var wall in walls)
     {
         wall.Draw();
     }
-    foreach (var h in hits)
-    {
-        Raylib.DrawCircleV(h, 4, Color.Green);
-    }
 
     Raylib.DrawCircleV(mouse, 5, Color.Yellow);
+
     Raylib.EndDrawing();
 }
 
